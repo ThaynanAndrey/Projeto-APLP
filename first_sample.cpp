@@ -1,5 +1,5 @@
-#include <bits/stdc++.h> 
-#include <iostream> 
+#include <bits/stdc++.h>
+#include <iostream>
 #define TAM 12
 #define MAX_IT 1000
 
@@ -21,23 +21,23 @@ void limparTab(posicao tabuleiro[TAM][TAM]) {
 }
 
 bool isCanto(posicao jogada) {
-  return jogada.x == 0 && jogada.y == 0 
-    || jogada.x == 0 && jogada.y == TAM - 1 
-    || jogada.x == TAM - 1 && jogada.y == 0 
+  return jogada.x == 0 && jogada.y == 0
+    || jogada.x == 0 && jogada.y == TAM - 1
+    || jogada.x == TAM - 1 && jogada.y == 0
     || jogada.x == TAM - 1 && jogada.y == TAM - 1;
 }
 
 bool isParede(posicao jogada) {
-  return !isCanto(jogada) 
-    && (jogada.x == 0 
-        || jogada.y == 0 
-        || jogada.x == TAM - 1 
+  return !isCanto(jogada)
+    && (jogada.x == 0
+        || jogada.y == 0
+        || jogada.x == TAM - 1
         || jogada.y == TAM - 1);
 }
 
 bool mayExplode(posicao jogada) {
-  return isCanto(jogada) && jogada.stack > 1 
-    || isParede(jogada) && jogada.stack > 2 
+  return isCanto(jogada) && jogada.stack > 1
+    || isParede(jogada) && jogada.stack > 2
     || jogada.stack > 3;
 }
 
@@ -95,6 +95,7 @@ void resolverTabuleiro(posicao* jogada, posicao tabuleiro[TAM][TAM]) {
 }
 
 void printTab(posicao tabuleiro[TAM][TAM]) {
+  cout << "------------Tabuleiro--------------" << endl;
   for (int i = 0; i < TAM; i++) {
     for (int j = 0; j < TAM; j++) {
       posicao p = tabuleiro[i][j];
@@ -105,31 +106,80 @@ void printTab(posicao tabuleiro[TAM][TAM]) {
   }
 }
 
+int imprimirMenuInicial() {
+  cout << "#######################################" << endl;
+  cout << "#######################################" << endl;
+  cout << "##########  Chain Reaction   ##########" << endl;
+  cout << "#######################################" << endl;
+  cout << "#######################################" << endl << endl;
+
+  int opcao;
+  cout << "------------ Menu do Jogo ------------" << endl;
+  cout << "1) Começar o jogo" << endl;
+  cout << "2) Sair" << endl;
+  cout << "Digite o número de sua opção: " ;
+  cin >> opcao;
+
+  cout << endl << endl;
+
+  return opcao;
+}
+
+bool ninguemGanhou() {
+    // TODO: Definir uma funcao que verifica se um jogador venceu.
+    return true;
+}
+
+void realizarJogada(int numJogador, posicao tabuleiro[TAM][TAM]) {
+    int opcaoLinhaJogador, opcaoColunaJogador;
+
+    printTab(tabuleiro);
+
+    cout << endl << "Jogador " << numJogador << endl;
+    cout << "Escolha a linha: ";
+    cin >> opcaoLinhaJogador;
+    cout << "Escolha a coluna: ";
+    cin >> opcaoColunaJogador;
+    cout << endl;
+
+    posicao* jogada = & tabuleiro[opcaoLinhaJogador][opcaoColunaJogador];
+
+    if((*jogada).cor == 0) {
+        (*jogada).stack = 1;
+        (*jogada).cor = numJogador;
+    }
+    else if((*jogada).cor == numJogador) {
+        (*jogada).stack++;
+    }
+    resolverTabuleiro(jogada, tabuleiro);
+}
+
 int main() {
-  posicao tabuleiro[TAM][TAM];
-  limparTab(tabuleiro);
 
-  posicao* jogada1 = & tabuleiro[0][0];
+  int opcao = imprimirMenuInicial();
 
-  (*jogada1).stack = 2;
-  (*jogada1).cor = 1;
-  resolverTabuleiro(jogada1, tabuleiro);
+  if(opcao == 1) {
+    posicao tabuleiro[TAM][TAM];
+    limparTab(tabuleiro);
+    int jogadorAtual = 1;
+    while(ninguemGanhou()) {
+      if(jogadorAtual == 1) {
+        realizarJogada(1, tabuleiro);
+      } else {
+        realizarJogada(2, tabuleiro);
+      }
+      jogadorAtual = jogadorAtual == 1 ? 2 : 1;
+    }
 
-  (*jogada1).stack = 2;
-  (*jogada1).cor = 1;
-  resolverTabuleiro(jogada1, tabuleiro);
-
-  (*jogada1).stack = 2;
-  (*jogada1).cor = 1;
-  resolverTabuleiro(jogada1, tabuleiro);
-
-  printTab(tabuleiro);
+  } else {
+    cout << "Até a próxima!" << endl;
+  }
 
   // TODO:
-  // 1. Menu para interação no jogo
-  // 2. Definir como será a impressão do tabuleiro
-  // 3. Implementar jogabilidade pela linha de comando
-  // 4. Uniformizar código
-  // 5. Documentar, se necessário
-  // 6. Definir se haverá impressão da animação do tabuleiro se resolvendo (interessante)
+  // 1. Menu para interação no jogo (Quase finalizado)
+  // 2. Definir como será a impressão do tabuleiro (FALTA)
+  // 3. Implementar jogabilidade pela linha de comando (Feito)
+  // 4. Uniformizar código (FALTA)
+  // 5. Documentar, se necessário (FALTA)
+  // 6. Definir se haverá impressão da animação do tabuleiro se resolvendo (FALTA)
 }
