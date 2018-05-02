@@ -99,8 +99,14 @@ void printTab(posicao tabuleiro[TAM][TAM]) {
   for (int i = 0; i < TAM; i++) {
     for (int j = 0; j < TAM; j++) {
       posicao p = tabuleiro[i][j];
-      cout << (p.cor == 0 ? "N" : p.cor == 1 ? "A" : "B") << p.stack;
-      cout << " ";
+      if (j == 0) { 
+        cout << "|"; 
+      }
+      cout << " ͟";
+      cout << (p.cor == 0 ? "_͟" : p.cor == 1 ? "A̲" : "B̲");
+      cout << (p.stack == 0 ? "_͟" : p.stack == 1 ? "1" : "2");
+      cout << " ͟";
+      cout << "|";
     }
     cout << endl;
   }
