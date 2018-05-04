@@ -1,9 +1,14 @@
 #include <bits/stdc++.h>
 #include <iostream>
+#include <unistd.h>
 #define TAM 12
 #define MAX_IT 1000
 
 using namespace std;
+
+void limparTela() {
+  cout << string( 100, '\n' );
+}
 
 struct posicao {
   int cor, x, y, stack;
@@ -64,6 +69,30 @@ vector<posicao*> getVizinhos(posicao* jogada, posicao tabuleiro[TAM][TAM]) {
   return saida;
 }
 
+void printTab(posicao tabuleiro[TAM][TAM]) {
+  limparTela();
+  cout << "------------Tabuleiro--------------" << endl;
+  for (int i = 0; i < TAM; i++) {
+    for (int j = 0; j < TAM; j++) {
+      posicao p = tabuleiro[i][j];
+      if (j == 0) { 
+        //cout << "|"; 
+      }
+      //cout << " ͟";
+      //cout << (p.cor == 0 ? "_͟" : p.cor == 1 ? "A̲" : "B̲");
+      //cout << (p.stack == 0 ? "_͟" : p.stack == 1 ? "1͟" : p.stack == 2 ? "2͟" : "3͟");
+      //cout << " ͟";
+      //cout << "|";
+      
+      cout << " ";
+      cout << (p.cor == 0 ? " " : p.cor == 1 ? "A" : "B");
+      cout << p.stack;
+      cout << " ";
+    }
+    cout << endl;
+  }
+}
+
 void resolverTabuleiro(posicao* jogada, posicao tabuleiro[TAM][TAM]) {
   deque<posicao*> aProcessar;
   aProcessar.push_back(jogada);
@@ -91,24 +120,8 @@ void resolverTabuleiro(posicao* jogada, posicao tabuleiro[TAM][TAM]) {
 
     (*proximo).stack = 0;
     (*proximo).cor = 0;
-  }
-}
-
-void printTab(posicao tabuleiro[TAM][TAM]) {
-  cout << "------------Tabuleiro--------------" << endl;
-  for (int i = 0; i < TAM; i++) {
-    for (int j = 0; j < TAM; j++) {
-      posicao p = tabuleiro[i][j];
-      if (j == 0) { 
-        cout << "|"; 
-      }
-      cout << " ͟";
-      cout << (p.cor == 0 ? "_͟" : p.cor == 1 ? "A̲" : "B̲");
-      cout << (p.stack == 0 ? "_͟" : p.stack == 1 ? "1" : "2");
-      cout << " ͟";
-      cout << "|";
-    }
-    cout << endl;
+    printTab(tabuleiro);
+    usleep(1000 * 500);
   }
 }
 
@@ -142,11 +155,8 @@ void realizarJogada(int numJogador, posicao tabuleiro[TAM][TAM]) {
     printTab(tabuleiro);
 
     cout << endl << "Jogador " << numJogador << endl;
-    cout << "Escolha a linha: ";
-    cin >> opcaoLinhaJogador;
-    cout << "Escolha a coluna: ";
-    cin >> opcaoColunaJogador;
-    cout << endl;
+    cout << "Escolha a posicao: ";
+    scanf(" %d %d", &opcaoLinhaJogador, &opcaoColunaJogador);
 
     posicao* jogada = & tabuleiro[opcaoLinhaJogador][opcaoColunaJogador];
 
