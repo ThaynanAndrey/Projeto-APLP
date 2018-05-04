@@ -72,11 +72,15 @@ vector<posicao*> getVizinhos(posicao* jogada, posicao tabuleiro[TAM][TAM]) {
 void printTab(posicao tabuleiro[TAM][TAM]) {
   limparTela();
   cout << "------------Tabuleiro--------------" << endl;
+  cout << " ";
+  for (int i = 0; i < TAM; i++) { cout << " __ "; }
+  cout << endl;
+  
   for (int i = 0; i < TAM; i++) {
     for (int j = 0; j < TAM; j++) {
       posicao p = tabuleiro[i][j];
       if (j == 0) { 
-        //cout << "|"; 
+        cout << "|"; 
       }
       //cout << " ͟";
       //cout << (p.cor == 0 ? "_͟" : p.cor == 1 ? "A̲" : "B̲");
@@ -86,11 +90,16 @@ void printTab(posicao tabuleiro[TAM][TAM]) {
       
       cout << " ";
       cout << (p.cor == 0 ? " " : p.cor == 1 ? "A" : "B");
-      cout << p.stack;
+      cout << (p.stack == 0 ? " " : to_string(p.stack));
       cout << " ";
     }
+    cout << "|";
     cout << endl;
   }
+  
+  cout << " ";
+  for (int i = 0; i < TAM; i++) { cout << " __ "; }
+  cout << endl;
 }
 
 void resolverTabuleiro(posicao* jogada, posicao tabuleiro[TAM][TAM]) {
@@ -159,12 +168,17 @@ void realizarJogada(int numJogador, posicao tabuleiro[TAM][TAM]) {
     scanf(" %d %d", &opcaoLinhaJogador, &opcaoColunaJogador);
 
     posicao* jogada = & tabuleiro[opcaoLinhaJogador][opcaoColunaJogador];
+    
+    bool casaInvalida = (*jogada).stack > 0 && (*jogada).cor != numJogador;
+    if (casaInvalida) {
+      realizarJogada(numJogador, tabuleiro);
+      return;
+    }
 
     if((*jogada).cor == 0) {
         (*jogada).stack = 1;
         (*jogada).cor = numJogador;
-    }
-    else if((*jogada).cor == numJogador) {
+    } else if((*jogada).cor == numJogador) {
         (*jogada).stack++;
     }
     resolverTabuleiro(jogada, tabuleiro);
