@@ -3,6 +3,9 @@
 #include <unistd.h>
 #define TAM 12
 #define MAX_IT 1000
+#define VAZIO 0
+#define J1 1
+#define J2 2
 
 using namespace std;
 
@@ -17,8 +20,8 @@ struct posicao {
 void limparTab(posicao tabuleiro[TAM][TAM]) {
   for (int i = 0; i < TAM; i++) {
     for (int j = 0; j < TAM; j++) {
-      tabuleiro[i][j].cor = 0;
-      tabuleiro[i][j].stack = 0;
+      tabuleiro[i][j].cor = VAZIO;
+      tabuleiro[i][j].stack = VAZIO;
       tabuleiro[i][j].x = i;
       tabuleiro[i][j].y = j;
     }
@@ -89,8 +92,8 @@ void printTab(posicao tabuleiro[TAM][TAM]) {
       //cout << "|";
       
       cout << " ";
-      cout << (p.cor == 0 ? " " : p.cor == 1 ? "A" : "B");
-      cout << (p.stack == 0 ? " " : to_string(p.stack));
+      cout << (p.cor == VAZIO ? " " : p.cor == J1 ? "A" : "B");
+      cout << (p.stack == VAZIO ? " " : to_string(p.stack));
       cout << " ";
     }
     cout << "|";
@@ -153,8 +156,18 @@ int imprimirMenuInicial() {
   return opcao;
 }
 
-bool ninguemGanhou() {
-    // TODO: Definir uma funcao que verifica se um jogador venceu.
+bool ninguemGanhou(posicao tabuleiro[TAM][TAM]) {
+    int pecasJogadorUm = 0, pecasJogadorDois = 0;
+    for (int i = 0; i < TAM; i++) {
+      for (int j = 0; j < TAM; j++) {
+        posicao p = tabuleiro[i][j]; 
+        if (p.cor == J1) {
+          pecasJogadorUm++;
+        } else if (p.cor == J2) {
+          pecasJogadorDois++;
+        }
+      }
+    }
     return true;
 }
 
@@ -169,13 +182,13 @@ void realizarJogada(int numJogador, posicao tabuleiro[TAM][TAM]) {
 
     posicao* jogada = & tabuleiro[opcaoLinhaJogador][opcaoColunaJogador];
     
-    bool casaInvalida = (*jogada).stack > 0 && (*jogada).cor != numJogador;
+    bool casaInvalida = (*jogada).stack > VAZIO && (*jogada).cor != numJogador;
     if (casaInvalida) {
       realizarJogada(numJogador, tabuleiro);
       return;
     }
 
-    if((*jogada).cor == 0) {
+    if((*jogada).cor == VAZIO) {
         (*jogada).stack = 1;
         (*jogada).cor = numJogador;
     } else if((*jogada).cor == numJogador) {
@@ -185,22 +198,16 @@ void realizarJogada(int numJogador, posicao tabuleiro[TAM][TAM]) {
 }
 
 int main() {
-
   int opcao = imprimirMenuInicial();
 
   if(opcao == 1) {
     posicao tabuleiro[TAM][TAM];
     limparTab(tabuleiro);
-    int jogadorAtual = 1;
-    while(ninguemGanhou()) {
-      if(jogadorAtual == 1) {
-        realizarJogada(1, tabuleiro);
-      } else {
-        realizarJogada(2, tabuleiro);
-      }
-      jogadorAtual = jogadorAtual == 1 ? 2 : 1;
-    }
-
+    int jogadorAtual = J1;
+    do {
+      realizarJogada(jogadorAtual, tabuleiro);
+      jogadorAtual = jogadorAtual == J1 ? J2 : J1;
+    } while (ninguemGanhou(tabuleiro));
   } else {
     cout << "Até a próxima!" << endl;
   }
