@@ -9,8 +9,11 @@
 
 using namespace std;
 
+string guias = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
 void limparTela() {
   cout << string( 100, '\n' );
+  cout << "\033[1;1H";
 }
 
 struct posicao {
@@ -75,7 +78,12 @@ vector<posicao*> getVizinhos(posicao* jogada, posicao tabuleiro[TAM][TAM]) {
 void printTab(posicao tabuleiro[TAM][TAM]) {
   limparTela();
   cout << "------------Tabuleiro--------------" << endl;
-  cout << " ";
+  cout << "   ";
+
+  for (int i = 0; i < TAM; i++) { cout << "  " << guias[i] << " "; }
+  cout << endl;
+  
+  cout << "   ";
   for (int i = 0; i < TAM; i++) { cout << " __ "; }
   cout << endl;
   
@@ -83,24 +91,22 @@ void printTab(posicao tabuleiro[TAM][TAM]) {
     for (int j = 0; j < TAM; j++) {
       posicao p = tabuleiro[i][j];
       if (j == 0) { 
-        cout << "|"; 
+        cout << (i < 9 ? "0" : "") << (i+1) << " |"; 
       }
-      //cout << " ͟";
-      //cout << (p.cor == 0 ? "_͟" : p.cor == 1 ? "A̲" : "B̲");
-      //cout << (p.stack == 0 ? "_͟" : p.stack == 1 ? "1͟" : p.stack == 2 ? "2͟" : "3͟");
-      //cout << " ͟";
-      //cout << "|";
-      
+
+      char n[1];
+      sprintf(n, "%d", p.stack);
+
       cout << " ";
       cout << (p.cor == VAZIO ? " " : p.cor == J1 ? "A" : "B");
-      cout << (p.stack == VAZIO ? " " : to_string(p.stack));
+      cout << (p.stack == VAZIO ? " " : n);
       cout << " ";
     }
     cout << "|";
     cout << endl;
   }
   
-  cout << " ";
+  cout << "   ";
   for (int i = 0; i < TAM; i++) { cout << " __ "; }
   cout << endl;
 }
@@ -132,6 +138,7 @@ void resolverTabuleiro(posicao* jogada, posicao tabuleiro[TAM][TAM]) {
 
     (*proximo).stack = 0;
     (*proximo).cor = 0;
+
     printTab(tabuleiro);
     usleep(1000 * 500);
   }
@@ -156,7 +163,7 @@ int imprimirMenuInicial() {
   return opcao;
 }
 
-bool ninguemGanhou(posicao tabuleiro[TAM][TAM]) {
+int getGanhador(posicao tabuleiro[TAM][TAM]) {
     int pecasJogadorUm = 0, pecasJogadorDois = 0;
     for (int i = 0; i < TAM; i++) {
       for (int j = 0; j < TAM; j++) {
@@ -168,19 +175,30 @@ bool ninguemGanhou(posicao tabuleiro[TAM][TAM]) {
         }
       }
     }
-    return true;
+
+    bool ninguemJogou = pecasJogadorDois == 0 && pecasJogadorUm == 0;
+    bool doisTemPecas = pecasJogadorDois > 0 && pecasJogadorUm > 0;
+    bool primeiraJogada = pecasJogadorDois == 1 && pecasJogadorUm == 0 
+      || pecasJogadorUm == 1 && pecasJogadorDois == 0;
+
+    bool ninguemGanhou = primeiraJogada || ninguemJogou || doisTemPecas;
+    return ninguemGanhou ? VAZIO : pecasJogadorUm == 0 ? J2 : J1;
 }
 
 void realizarJogada(int numJogador, posicao tabuleiro[TAM][TAM]) {
-    int opcaoLinhaJogador, opcaoColunaJogador;
+    int opcaoColunaJogador, opcaoLinhaJogador;
+    char letraLinha;
 
     printTab(tabuleiro);
 
-    cout << endl << "Jogador " << numJogador << endl;
+    cout << endl << "Jogador " << guias[numJogador-1] << endl;
     cout << "Escolha a posicao: ";
-    scanf(" %d %d", &opcaoLinhaJogador, &opcaoColunaJogador);
+    cin >> letraLinha >> opcaoColunaJogador;
 
-    posicao* jogada = & tabuleiro[opcaoLinhaJogador][opcaoColunaJogador];
+    opcaoLinhaJogador = guias.find(letraLinha, 0);
+    opcaoColunaJogador--;
+
+    posicao* jogada = & tabuleiro[opcaoColunaJogador][opcaoLinhaJogador];
     
     bool casaInvalida = (*jogada).stack > VAZIO && (*jogada).cor != numJogador;
     if (casaInvalida) {
@@ -199,7 +217,7 @@ void realizarJogada(int numJogador, posicao tabuleiro[TAM][TAM]) {
 
 int main() {
   int opcao = imprimirMenuInicial();
-
+  
   if(opcao == 1) {
     posicao tabuleiro[TAM][TAM];
     limparTab(tabuleiro);
@@ -207,7 +225,9 @@ int main() {
     do {
       realizarJogada(jogadorAtual, tabuleiro);
       jogadorAtual = jogadorAtual == J1 ? J2 : J1;
-    } while (ninguemGanhou(tabuleiro));
+    } while (getGanhador(tabuleiro) == VAZIO);
+
+    cout << endl << "Jogador " << (getGanhador(tabuleiro) == J1 ? "A" : "B") << " venceu!" << endl;
   } else {
     cout << "Até a próxima!" << endl;
   }
