@@ -1,8 +1,8 @@
 #include <bits/stdc++.h>
 #include <iostream>
 #include <unistd.h>
-#define TAM 12
-#define MAX_IT 1000
+#define TAM_MAX 26
+#define MAX_IT 4000
 #define VAZIO 0
 #define J1 1
 #define J2 2
@@ -16,6 +16,8 @@ using namespace std;
  * A representa coluna 0, letra B coluna 1, e assim por diante.
  */
 string guias = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+int TAM_X = 12, TAM_Y = 5;
 
 /**
  * Limpa a tela do terminal para que o tabuleiro seja impresso no final do
@@ -40,9 +42,9 @@ struct posicao {
 /**
  *Limpa o tabuleiro do jogo, deixando todas as posições vazias.
  */
-void limparTab(posicao tabuleiro[TAM][TAM]) {
-  for (int i = 0; i < TAM; i++) {
-    for (int j = 0; j < TAM; j++) {
+void limparTab(posicao tabuleiro[TAM_MAX][TAM_MAX]) {
+  for (int i = 0; i < TAM_MAX; i++) {
+    for (int j = 0; j < TAM_MAX; j++) {
       tabuleiro[i][j].cor = VAZIO;
       tabuleiro[i][j].pilhaDeBolinhas = VAZIO;
       tabuleiro[i][j].x = i;
@@ -58,8 +60,8 @@ void limparTab(posicao tabuleiro[TAM][TAM]) {
  * @return {bool} True se está na quina, false caso contrário.
  */
 bool isQuina(posicao jogada) {
-  const int INDICE_ULTIMA_COLUNA = TAM - 1;
-  const int INDICE_ULTIMA_LINHA = TAM - 1;
+  const int INDICE_ULTIMA_COLUNA = TAM_Y - 1;
+  const int INDICE_ULTIMA_LINHA = TAM_X - 1;
   return jogada.x == INDICE_PRIMEIRA_LINHA && jogada.y == INDICE_PRIMEIRA_COLUNA
     || jogada.x == INDICE_PRIMEIRA_LINHA && jogada.y == INDICE_ULTIMA_COLUNA
     || jogada.x == INDICE_ULTIMA_LINHA && jogada.y == INDICE_PRIMEIRA_COLUNA
@@ -74,8 +76,8 @@ bool isQuina(posicao jogada) {
  * @return {bool} True se está em uma das paredes do tabuleiro, false caso contrário.
  */
 bool isParede(posicao jogada) {
-  const int INDICE_ULTIMA_COLUNA = TAM - 1;
-  const int INDICE_ULTIMA_LINHA = TAM - 1;
+  const int INDICE_ULTIMA_COLUNA = TAM_Y - 1;
+  const int INDICE_ULTIMA_LINHA = TAM_X - 1;
   return !isQuina(jogada)
     && (jogada.x == INDICE_PRIMEIRA_LINHA
         || jogada.y == INDICE_PRIMEIRA_COLUNA
@@ -144,8 +146,8 @@ bool podeExplodir(posicao jogada) {
  * @return {bool} True se é uma coordenada válida, false caso contrário.
  */
 bool isCoordenadaValida(int x, int y) {
-  const int INDICE_ULTIMA_COLUNA = TAM - 1;
-  const int INDICE_ULTIMA_LINHA = TAM - 1;
+  const int INDICE_ULTIMA_COLUNA = TAM_Y - 1;
+  const int INDICE_ULTIMA_LINHA = TAM_X - 1;
   return x >= INDICE_PRIMEIRA_LINHA
         && y >= INDICE_PRIMEIRA_COLUNA
         && x <= INDICE_ULTIMA_LINHA
@@ -159,7 +161,7 @@ bool isCoordenadaValida(int x, int y) {
  * @param {array} tabuleiro, tabuleiro do jogo.
  * @return {vector} vetor com os vizinhos.
  */
-vector<posicao*> getVizinhos(posicao* jogada, posicao tabuleiro[TAM][TAM]) {
+vector<posicao*> getVizinhos(posicao* jogada, posicao tabuleiro[TAM_MAX][TAM_MAX]) {
   vector<posicao*> saida;
   int x = (*jogada).x;
   int y = (*jogada).y;
@@ -182,9 +184,9 @@ vector<posicao*> getVizinhos(posicao* jogada, posicao tabuleiro[TAM][TAM]) {
  * Imprime as posições do tabuleiro do jogo no terminal.
  * @param {array} tabuleiro, tabuleiro do jogo.
  */
-void imprimirPosicoesTabuleiro(posicao tabuleiro[TAM][TAM]) {
-  for (int i = 0; i < TAM; i++) {
-    for (int j = 0; j < TAM; j++) {
+void imprimirPosicoesTabuleiro(posicao tabuleiro[TAM_MAX][TAM_MAX]) {
+  for (int i = 0; i < TAM_Y; i++) {
+    for (int j = 0; j < TAM_X; j++) {
       posicao p = tabuleiro[i][j];
       if (j == 0) {
         cout << (i < 9 ? "0" : "") << (i+1) << " |";
@@ -208,21 +210,21 @@ void imprimirPosicoesTabuleiro(posicao tabuleiro[TAM][TAM]) {
  * Imprime o tabuleiro do jogo no terminal.
  * @param {array} tabuleiro, tabuleiro do jogo.
  */
-void imprimirTabuleiro(posicao tabuleiro[TAM][TAM]) {
+void imprimirTabuleiro(posicao tabuleiro[TAM_MAX][TAM_MAX]) {
   limparTela();
   cout << "------------Tabuleiro--------------" << endl;
   cout << "   ";
 
-  for (int i = 0; i < TAM; i++) {
+  for (int i = 0; i < TAM_X; i++) {
     cout << "  " << guias[i] << " ";
   }
   cout << endl << "   ";
-  for (int i = 0; i < TAM; i++) {
+  for (int i = 0; i < TAM_X; i++) {
     cout << " __ ";
   }
   cout << endl;
   imprimirPosicoesTabuleiro(tabuleiro);
-  for (int i = 0; i < TAM; i++) {
+  for (int i = 0; i < TAM_X; i++) {
     cout << " __ ";
   }
   cout << endl;
@@ -234,7 +236,7 @@ void imprimirTabuleiro(posicao tabuleiro[TAM][TAM]) {
  * @param {posicao} jogada, jogada realizada em determinada posição.
  * @param {array} tabuleiro, tabuleiro do jogo.
  */
-void resolverTabuleiro(posicao* jogada, posicao tabuleiro[TAM][TAM]) {
+void resolverTabuleiro(posicao* jogada, posicao tabuleiro[TAM_MAX][TAM_MAX]) {
   deque<posicao*> aProcessar;
   aProcessar.push_back(jogada);
 
@@ -254,8 +256,6 @@ void resolverTabuleiro(posicao* jogada, posicao tabuleiro[TAM][TAM]) {
       (*viz).cor = (*proximo).cor;
       if (podeExplodir(*viz)) {
         aProcessar.push_front(viz);
-      } else {
-        aProcessar.push_back(viz);
       }
     }
 
@@ -295,10 +295,10 @@ int imprimirMenuInicial() {
  * @param {array} tabuleiro, Tabuleiro do jogo.
  * @return {int} inteiro que indica o vencedor do jogo ou 0 se ninguém ganhou.
  */
-int getGanhador(posicao tabuleiro[TAM][TAM]) {
+int getGanhador(posicao tabuleiro[TAM_MAX][TAM_MAX]) {
     int pecasJogadorUm = 0, pecasJogadorDois = 0;
-    for (int i = 0; i < TAM; i++) {
-      for (int j = 0; j < TAM; j++) {
+    for (int i = 0; i < TAM_Y; i++) {
+      for (int j = 0; j < TAM_X; j++) {
         posicao p = tabuleiro[i][j];
         if (p.cor == J1) {
           pecasJogadorUm++;
@@ -323,11 +323,14 @@ int getGanhador(posicao tabuleiro[TAM][TAM]) {
  * @param {int} numJogador, Número do jogador responsável pela jogada.
  * @param {array} tabuleiro, Tabuleiro do jogo.
  */
-void realizarJogada(int numJogador, posicao tabuleiro[TAM][TAM]) {
+void realizarJogada(int numJogador, posicao tabuleiro[TAM_MAX][TAM_MAX], bool rejogada) {
     int opcaoColunaJogador, opcaoLinhaJogador;
     char letraLinha;
 
     imprimirTabuleiro(tabuleiro);
+    if (rejogada) {
+      cout << "Posição inválida, jogue novamente." << endl;
+    }
 
     cout << endl << "Jogador " << guias[numJogador-1] << endl;
     cout << "Escolha a posicao (Ex: A1): ";
@@ -336,20 +339,33 @@ void realizarJogada(int numJogador, posicao tabuleiro[TAM][TAM]) {
     opcaoLinhaJogador = guias.find(letraLinha, 0);
     opcaoColunaJogador--;
 
+    bool posicaoInvalida = opcaoLinhaJogador < 0 || opcaoLinhaJogador > TAM_X
+      || opcaoColunaJogador < 0 || opcaoColunaJogador > TAM_Y;
+    if (posicaoInvalida) {
+      realizarJogada(numJogador, tabuleiro, true);
+      return;
+    }
+
     posicao* jogada = & tabuleiro[opcaoColunaJogador][opcaoLinhaJogador];
 
     bool casaInvalida = (*jogada).pilhaDeBolinhas > VAZIO && (*jogada).cor != numJogador;
     if (casaInvalida) {
-      realizarJogada(numJogador, tabuleiro);
+      realizarJogada(numJogador, tabuleiro, true);
     } else {
-      if((*jogada).cor == VAZIO) {
-          (*jogada).pilhaDeBolinhas = 1;
-          (*jogada).cor = numJogador;
-      } else if((*jogada).cor == numJogador) {
-          (*jogada).pilhaDeBolinhas++;
-      }
+      (*jogada).pilhaDeBolinhas++;
+      (*jogada).cor = numJogador;
       resolverTabuleiro(jogada, tabuleiro);
     }
+}
+
+void configurarTamanhoTab() {
+  cout << "Defina o tamanho para o tabuleiro(máximo: 26x26): (Ex: 10 10) ";
+  cin >> TAM_Y >> TAM_X;
+  if (TAM_X > TAM_MAX || TAM_Y > TAM_MAX 
+    || TAM_X <= INDICE_PRIMEIRA_LINHA || TAM_Y <= INDICE_PRIMEIRA_COLUNA) {
+    cout << "Tamanho inválido. Insira novamente" << endl;
+    configurarTamanhoTab();
+  }
 }
 
 /**
@@ -357,13 +373,14 @@ void realizarJogada(int numJogador, posicao tabuleiro[TAM][TAM]) {
  */
 int main() {
   int opcao = imprimirMenuInicial();
-  while(opcao == 1) {
-    posicao tabuleiro[TAM][TAM];
+  while(opcao != 2) {
+    posicao tabuleiro[TAM_MAX][TAM_MAX];
+    configurarTamanhoTab();
     limparTab(tabuleiro);
     int jogadorAtual = J1;
 
     do {
-      realizarJogada(jogadorAtual, tabuleiro);
+      realizarJogada(jogadorAtual, tabuleiro, false);
       jogadorAtual = jogadorAtual == J1 ? J2 : J1;
     } while (getGanhador(tabuleiro) == VAZIO);
 
