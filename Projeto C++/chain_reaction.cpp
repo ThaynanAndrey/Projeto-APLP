@@ -339,8 +339,7 @@ int getGanhador(posicao tabuleiro[TAM_MAX][TAM_MAX]) {
  * @return True se a jogada é inválida, false caso contrário.
  */
 bool isJogadaInvalida(int opcaoLinhaJogador, int opcaoColunaJogador, int numJogador, posicao* jogada) {
-  return opcaoLinhaJogador < 0 || TAM_X <= opcaoLinhaJogador
-      || opcaoColunaJogador < 0 || TAM_Y <= opcaoColunaJogador
+  return !isCoordenadaValida(opcaoLinhaJogador, opcaoColunaJogador)
       || ((*jogada).pilhaDeBolinhas > VAZIO && (*jogada).cor != numJogador);
 }
 
