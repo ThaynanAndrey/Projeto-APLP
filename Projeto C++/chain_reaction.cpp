@@ -20,15 +20,6 @@ string guias = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 int TAM_X = 12, TAM_Y = 5;
 
 /**
- * Limpa a tela do terminal para que o tabuleiro seja impresso no final do
- * terminal, facilitando a interação com o usuário.
- */
-void limparTela() {
-  cout << string( 100, '\n' );
-  cout << "\033[1;1H";
-}
-
-/**
  * Estrutura para definir as posições do tabuleiro.
  * - cor: cor do jogador;
  * - x: número da linha no tabuleiro;
@@ -38,6 +29,56 @@ void limparTela() {
 struct posicao {
   int cor, x, y, pilhaDeBolinhas;
 };
+
+/**
+ * Consome caracteres inválidos tentados ler a partir da entrada.
+ * Ex: Quando tentar ler um inteiro mas receber uma string, o CIN entra
+ * em loop até que seja consumido o buffer.
+ */
+void limparEntrada() {
+  if (cin.fail()) {
+    cin.clear(); 
+    cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  }
+}
+
+/**
+ * Limpa a tela do terminal para que o tabuleiro seja impresso no final do
+ * terminal, facilitando a interação com o usuário.
+ */
+void limparTela() {
+  cout << string( 100, '\n' );
+  cout << "\033[1;1H";
+}
+
+/**
+ * Obtém o ganhador do jogo, caso exista.
+ *
+ * @param tabuleiro, Tabuleiro do jogo.
+ * @return inteiro que indica o vencedor do jogo ou 0 se ninguém ganhou.
+ */
+int getGanhador(posicao tabuleiro[TAM_MAX][TAM_MAX]) {
+    int pecasJogadorUm = 0, pecasJogadorDois = 0;
+    
+    for (int i = 0; i < TAM_Y; i++) {
+      for (int j = 0; j < TAM_X; j++) {
+        posicao p = tabuleiro[i][j];
+        if (p.cor == J1) {
+          pecasJogadorUm++;
+        } else if (p.cor == J2) {
+          pecasJogadorDois++;
+        }
+      }
+    }
+
+    bool ninguemJogou = pecasJogadorDois == 0 && pecasJogadorUm == 0;
+    bool doisTemPecas = pecasJogadorDois > 0 && pecasJogadorUm > 0;
+    bool primeiraJogada = pecasJogadorDois == 1 && pecasJogadorUm == 0
+      || pecasJogadorUm == 1 && pecasJogadorDois == 0;
+
+    bool ninguemGanhou = primeiraJogada || ninguemJogou || doisTemPecas;
+    return ninguemGanhou ? VAZIO : pecasJogadorUm == 0 ? J2 : J1;
+}
 
 /**
  *Limpa o tabuleiro do jogo, deixando todas as posições vazias.
@@ -237,13 +278,13 @@ void imprimirTabuleiro(posicao tabuleiro[TAM_MAX][TAM_MAX]) {
  * @param aProcessar, fila com as casa que vão explodir.
  * @param cor, cor que a casa vai receber.
  */
-void inserirBolinhasNosVizinhos(vector<posicao*> vizinhos, deque<posicao*> aProcessar, int cor) {
+void inserirBolinhasNosVizinhos(vector<posicao*> vizinhos, deque<posicao*>* aProcessar, int cor) {
   for (int i = 0; i < vizinhos.size(); i++) {
     posicao* viz = vizinhos[i];
     (*viz).pilhaDeBolinhas++;
     (*viz).cor = cor;
     if (podeExplodir(*viz)) {
-      aProcessar.push_front(viz);
+      (*aProcessar).push_front(viz);
     }
   }
 }
@@ -259,13 +300,13 @@ void resolverTabuleiro(posicao* jogada, posicao tabuleiro[TAM_MAX][TAM_MAX]) {
   aProcessar.push_back(jogada);
 
   int iteracao = 0;
-  while (!aProcessar.empty() && iteracao++ < MAX_IT) {
+  while (!aProcessar.empty() && iteracao++ < MAX_IT && getGanhador(tabuleiro) == VAZIO) {
     posicao* proximo = aProcessar.front();
     aProcessar.pop_front();
 
     if (podeExplodir(*proximo)) {
       vector<posicao*> vizinhos = getVizinhos(proximo, tabuleiro);
-      inserirBolinhasNosVizinhos(vizinhos, aProcessar, (*proximo).cor);
+      inserirBolinhasNosVizinhos(vizinhos, &aProcessar, (*proximo).cor);
   
       (*proximo).pilhaDeBolinhas = 0;
       (*proximo).cor = 0;
@@ -296,35 +337,6 @@ int imprimirMenuInicial() {
   cout << endl << endl;
 
   return opcao;
-}
-
-/**
- * Obtém o ganhador do jogo, caso exista.
- *
- * @param tabuleiro, Tabuleiro do jogo.
- * @return inteiro que indica o vencedor do jogo ou 0 se ninguém ganhou.
- */
-int getGanhador(posicao tabuleiro[TAM_MAX][TAM_MAX]) {
-    int pecasJogadorUm = 0, pecasJogadorDois = 0;
-    
-    for (int i = 0; i < TAM_Y; i++) {
-      for (int j = 0; j < TAM_X; j++) {
-        posicao p = tabuleiro[i][j];
-        if (p.cor == J1) {
-          pecasJogadorUm++;
-        } else if (p.cor == J2) {
-          pecasJogadorDois++;
-        }
-      }
-    }
-
-    bool ninguemJogou = pecasJogadorDois == 0 && pecasJogadorUm == 0;
-    bool doisTemPecas = pecasJogadorDois > 0 && pecasJogadorUm > 0;
-    bool primeiraJogada = pecasJogadorDois == 1 && pecasJogadorUm == 0
-      || pecasJogadorUm == 1 && pecasJogadorDois == 0;
-
-    bool ninguemGanhou = primeiraJogada || ninguemJogou || doisTemPecas;
-    return ninguemGanhou ? VAZIO : pecasJogadorUm == 0 ? J2 : J1;
 }
 
 /**
@@ -361,7 +373,7 @@ void realizarJogada(int numJogador, posicao tabuleiro[TAM_MAX][TAM_MAX], bool re
     }
 
     cout << endl << "Jogador " << guias[numJogador-1] << endl;
-    cout << "Escolha a posicao (Ex: A1): ";
+    cout << "Escolha a posicao (Ex: " << (numJogador == J1 ? "A" : "B") << "1): ";
     cin >> letraLinha >> opcaoColunaJogador;
 
     opcaoLinhaJogador = guias.find(letraLinha, 0);
@@ -385,6 +397,7 @@ void configurarTamanhoTabuleiro() {
   if (TAM_X > TAM_MAX || TAM_Y > TAM_MAX 
     || TAM_X <= INDICE_PRIMEIRA_LINHA || TAM_Y <= INDICE_PRIMEIRA_COLUNA) {
     cout << "Tamanho inválido. Insira novamente" << endl;
+    limparEntrada();
     configurarTamanhoTabuleiro();
   }
 }
