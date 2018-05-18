@@ -1,3 +1,9 @@
+/*
+  Grupo: Caio Felipe
+         Eric Breno
+         Thaynan Andrey
+         Rafael Oliveira
+*/
 #include <bits/stdc++.h>
 #include <iostream>
 #include <unistd.h>
