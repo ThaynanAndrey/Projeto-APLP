@@ -1,6 +1,9 @@
 # Projeto-APLP
 Projeto de Aplicações de Paradigmas de Programação escrito nas linguagens C++, Haskell e Prolog para o jogo Chain Reaction.
 
+### Restrições em C++:  
+* Utilizar o compilador g++ 5.4.0, executado em ambiente Ubuntu 5.4.0-6ubuntu1~16.04.9.  
+
 ### 1. O que é:  
   É um jogo de tabuleiro que pode ser jogado por 2 jogadores, no qual o jogador deve ir conquistando casas para alcançar e ocupar as casas do adversário.
 
