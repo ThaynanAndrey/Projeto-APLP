@@ -36,6 +36,12 @@ prompt = do
 convertStringInInt :: [String] -> [Int]
 convertStringInInt = map read
 
+repeatNTimes 0 _ = return ()
+repeatNTimes n action =
+ do 
+  print $  a (getElem 1 n action)
+  repeatNTimes (n-1) action
+
 
 configurarTamanhoTabuleiro :: IO()
 configurarTamanhoTabuleiro = do
@@ -44,9 +50,9 @@ configurarTamanhoTabuleiro = do
     let coord = splitOn " " formato
     let length = do convertStringInInt coord
     let building = do product length
-    let list_all = replicate building Teste {a=1}
+    let list_all = replicate building Teste {a="1"}
         m1 = fromList (head length) (last length) list_all
-    print m1
+    repeatNTimes (head length) m1
     -- print list
 
 main :: IO ()
