@@ -51,7 +51,7 @@ configurarTamanhoTabuleiro = do
     qtd_colunas_char <- getLine
     let qtd_colunas = (read qtd_colunas_char :: Int)
     let meuTabuleiro = criarTabuleiro qtd_linhas qtd_colunas
-    jogar meuTabuleiro 1
+    jogar meuTabuleiro "A"
 
 -- Recebe a entrada do Usario para delinear a dinamica do jogo.
 iniciarJogo :: IO ()
@@ -66,37 +66,46 @@ iniciarJogo = do
             putStrLn $ "Voce digitou uma opacaoinvalida. Tente Novamente..."
             iniciarJogo
 
+-- Funcao auxiliar de inserirNoTabuleiro que permite inserir na posicao correta.
+inserirNaPosicao :: [(String, Int)] -> String -> Int -> Int -> [(String, Int)]
+inserirNaPosicao [] _ _ _ = []
+inserirNaPosicao ((a, b):xs) jogadorDaVez coluna coluna_cont
+    | coluna == coluna_cont = [(jogadorDaVez, (b+1))] ++ (inserirNaPosicao xs jogadorDaVez coluna (coluna_cont+1))
+    | otherwise = [(a, b)] ++ (inserirNaPosicao xs jogadorDaVez coluna (coluna_cont+1))
+
+-- Insere na posicao estabelecida pelo usuario
+inserirNoTabuleiro :: [[(String, Int)]] -> String -> Int -> Int -> Int -> [[(String, Int)]]
+inserirNoTabuleiro [] _ _ _ _ = []
+inserirNoTabuleiro (a:xs) jogadorDaVez linha linha_cont coluna
+    | linha_cont == linha = [(inserirNaPosicao a jogadorDaVez coluna 1)] ++ (inserirNoTabuleiro xs jogadorDaVez linha (linha_cont+1) coluna)
+    | otherwise = [a] ++ (inserirNoTabuleiro xs jogadorDaVez linha (linha_cont+1) coluna)
+
 -- Realiza a jogada do Usuario.
-realizarJogada :: Int -> Int -> Int -> IO()
-realizarJogada jogadorDaVez linha coluna = do
-    -- Desconsiderar esses prints
-    putStrLn ("Voce chegou ate aqui, parabens")
-    print "-----"
-    print jogadorDaVez
-    print linha
-    print coluna
-    print "-----"
-    -- inserir o elemento na posicao que o jogador passou
+realizarJogada :: [[(String, Int)]] -> String -> Int -> Int -> [[(String, Int)]]
+realizarJogada tabuleiro jogadorDaVez linha coluna = do
+    inserirNoTabuleiro tabuleiro jogadorDaVez linha 1 coluna
     -- e realizar o chain reaction. 
 
 -- Inverte o jogador da vez.
-inverterJogador :: Int -> Int
-inverterJogador jogadorDaVez | jogadorDaVez == 1 = 2
-                             | otherwise = 1
+inverterJogador :: String -> String
+inverterJogador jogadorDaVez | jogadorDaVez == "A" = "B"
+                             | otherwise = "A"
 
 -- Funcao responsavel pelo controle de jogo
-jogar :: [[(String, Int)]] -> Int -> IO()
+jogar :: [[(String, Int)]] -> String -> IO()
 jogar tabuleiro jogadorDaVez = do
     -- Fazer a verificacao de se algum jogador ja ganhou
+    putStrLn("")
     imprimirTauleiro tabuleiro
+    putStrLn("Sua vez jogador " ++ jogadorDaVez )
     putStrLn ("Em qual linha voce quer jogar?")
     linha_lida <- getLine
     let linha = (read linha_lida :: Int)
     putStrLn ("Em qual coluna voce quer jogar?")
     coluna_lida <- getLine
     let coluna = (read coluna_lida :: Int)
-    realizarJogada jogadorDaVez linha coluna
-    jogar tabuleiro (inverterJogador jogadorDaVez)
+    let tabuleiroComJogada = realizarJogada tabuleiro jogadorDaVez linha coluna
+    jogar tabuleiroComJogada (inverterJogador jogadorDaVez)
 
 -- Funcao principal do programa
 main :: IO ()
