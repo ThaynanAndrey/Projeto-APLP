@@ -86,10 +86,44 @@ realizarJogada tabuleiro jogadorDaVez linha coluna = do
     inserirNoTabuleiro tabuleiro jogadorDaVez linha 1 coluna
     -- e realizar o chain reaction. 
 
+
+-- Verifica se posicao pode explodir iterando pelas linhas
+podeExplodirLinha :: [[(String, Int)]] -> Int -> Int -> Int -> Bool
+podeExplodirLinha [] _ _ _ = False
+podeExplodirLinha (x:xs) linha coluna linha_cont
+    | linha_cont == linha = podeExplodirColuna x coluna 1 xs linha_cont
+    | otherwise = podeExplodirLinha xs linha coluna (linha_cont+1)
+
+--Funcao auxiliar que verifica se posicao pode explodir iterando pelas colunas
+podeExplodirColuna :: [(String, Int)] -> Int -> Int ->  [[(String, Int)]] -> Int-> Bool
+podeExplodirColuna [] _ _ _ _ = False
+podeExplodirColuna ((a,b):xs) coluna coluna_cont proxima_linha linha_cont
+    | coluna_cont == coluna = checaPosicaoDeExplosao proxima_linha xs linha_cont coluna_cont b
+    | otherwise = podeExplodirColuna xs coluna (coluna_cont+1) proxima_linha linha_cont
+
+--Funcao auxiliar que checa se a posição explode
+checaPosicaoDeExplosao :: [[(String, Int)]] -> [(String,Int)] -> Int -> Int -> Int -> Bool
+checaPosicaoDeExplosao [] [] _ _ qtdBolinhas = (qtdBolinhas == 2)
+checaPosicaoDeExplosao _ _ 1 1 qtdBolinhas =(qtdBolinhas == 2)
+checaPosicaoDeExplosao [] _ _ 1 qtdBolinhas = (qtdBolinhas == 2)
+checaPosicaoDeExplosao _ [] 1 _ qtdBolinhas =(qtdBolinhas == 2)
+checaPosicaoDeExplosao [] _ _ _ qtdBolinhas =(qtdBolinhas == 3)
+checaPosicaoDeExplosao _ [] _ _ qtdBolinhas =(qtdBolinhas == 3)
+checaPosicaoDeExplosao _ _ 1 _ qtdBolinhas =(qtdBolinhas == 3)
+checaPosicaoDeExplosao _ _ _ 1 qtdBolinhas =(qtdBolinhas == 3)
+checaPosicaoDeExplosao proxima_linha proxima_coluna linha_cont coluna_cont qtdBolinhas = (qtdBolinhas == 4)
+
+
+
+--inserirBolasNosVizinhos :: [[(String, Int)]] -> (Int,Int) -> String -> [[(String, Int)]]
+--inserirBolasNosVizinhos tabuleiro posicoes jogadorDaVez = tabuleiro ++ [("Caio", 21)]
+
+
 -- Inverte o jogador da vez.
 inverterJogador :: String -> String
-inverterJogador jogadorDaVez | jogadorDaVez == "A" = "B"
-                             | otherwise = "A"
+inverterJogador jogadorDaVez
+    | jogadorDaVez == "A" = "B"
+    | otherwise = "A"
 
 -- Funcao responsavel pelo controle de jogo
 jogar :: [[(String, Int)]] -> String -> IO()
