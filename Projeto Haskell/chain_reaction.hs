@@ -80,11 +80,64 @@ inserirNoTabuleiro (a:xs) jogadorDaVez linha linha_cont coluna
     | linha_cont == linha = [(inserirNaPosicao a jogadorDaVez coluna 1)] ++ (inserirNoTabuleiro xs jogadorDaVez linha (linha_cont+1) coluna)
     | otherwise = [a] ++ (inserirNoTabuleiro xs jogadorDaVez linha (linha_cont+1) coluna)
 
+-- Funcao auxiliar de resetarNoTabuleiro que permite resetar os valores na posicao correta.
+resetarNaPosicao :: [(String, Int)] -> Int -> Int -> [(String, Int)]
+resetarNaPosicao [] _ _ = []
+resetarNaPosicao ((a, b):xs) coluna coluna_cont
+    | coluna == coluna_cont = [("N", 0)] ++ (resetarNaPosicao xs coluna (coluna_cont+1))
+    | otherwise = [(a, b)] ++ (resetarNaPosicao xs coluna (coluna_cont+1))
+
+-- Reseta os valores na posicao estabelecida pelo usuario
+resetarNoTabuleiro :: [[(String, Int)]]  -> Int -> Int -> Int -> [[(String, Int)]]
+resetarNoTabuleiro [] _ _ _ = []
+resetarNoTabuleiro (a:xs) linha linha_cont coluna
+    | linha_cont == linha = [(resetarNaPosicao a coluna 1)] ++ (resetarNoTabuleiro xs linha (linha_cont+1) coluna)
+    | otherwise = [a] ++ (resetarNoTabuleiro xs linha (linha_cont+1) coluna)
+
 -- Realiza a jogada do Usuario.
 realizarJogada :: [[(String, Int)]] -> String -> Int -> Int -> [[(String, Int)]]
 realizarJogada tabuleiro jogadorDaVez linha coluna = do
     inserirNoTabuleiro tabuleiro jogadorDaVez linha 1 coluna
-    -- e realizar o chain reaction. 
+
+--Funcao que realiza o chain reaction
+resolverTabuleiro :: [[(String,Int)]] -> String -> [(Int, Int )]-> [[(String, Int)]]
+resolverTabuleiro tabuleiro jogadorDaVez [] = tabuleiro
+resolverTabuleiro tabuleiro jogadorDaVez ((a, b):xs) = do
+    if(podeExplodirLinha tabuleiro a b 1) then do
+        let vizinhos = pegaVizinhos tabuleiro a b 1
+        let tabuleiroInserido = inserirBolasNosVizinhos tabuleiro jogadorDaVez vizinhos
+        resetarNoTabuleiro tabuleiroInserido a 1 b 
+    else do
+        resolverTabuleiro tabuleiro jogadorDaVez xs
+
+--Funcao que insere bolas na lista de vizinhos passadas como parametro
+inserirBolasNosVizinhos ::  [[(String,Int)]] -> String -> [(Int, Int )]-> [[(String, Int)]]
+inserirBolasNosVizinhos tabuleiro _ [] = tabuleiro
+inserirBolasNosVizinhos tabuleiro jogadorDaVez ((a,b):xs) = inserirBolasNosVizinhos (inserirNoTabuleiro tabuleiro jogadorDaVez a 1 b) jogadorDaVez xs
+
+--Funcao retorna os vizinhos de uma certa coordenada
+pegaVizinhos :: [[(String, Int)]] -> Int -> Int -> Int -> [(Int, Int)]
+pegaVizinhos (x:xs) linha coluna linha_cont
+    | linha_cont == linha = pegaVizinhosNaPosicao x linha coluna 1 xs
+    | otherwise = pegaVizinhos xs linha coluna (linha_cont+1)
+
+--Funcao auxiliar pega os vizinhos de uma certa coordenada
+pegaVizinhosNaPosicao :: [(String, Int)]-> Int -> Int -> Int -> [[(String,Int)]] -> [(Int, Int)]
+pegaVizinhosNaPosicao (x:xs) linha coluna coluna_cont proxima_linha
+    | coluna_cont == coluna = retornaVizinhos proxima_linha xs linha coluna
+    | otherwise = pegaVizinhosNaPosicao xs linha coluna coluna_cont proxima_linha
+
+--Funcao auxiliar retorna os vizinhos de uma certa coordenada
+retornaVizinhos :: [[(String,Int)]] -> [(String,Int)] -> Int -> Int -> [(Int,Int)]
+retornaVizinhos [] [] linha coluna  = [(linha-1,coluna), (linha,coluna-1)]
+retornaVizinhos _ _ 1 1  = [(2,1), (1,2)]
+retornaVizinhos [] _ linha 1  = [(linha-1, 1), (linha, 2)]
+retornaVizinhos _ [] 1 coluna  = [(1, coluna-1),(2,coluna)]
+retornaVizinhos [] _ linha coluna = [(linha-1,coluna),(linha,coluna-1),(linha,coluna+1)]
+retornaVizinhos _ [] linha coluna = [(linha-1,coluna),(linha+1,coluna),(linha,coluna-1)]
+retornaVizinhos _ _ 1 coluna = [(1,coluna-1),(1,coluna+1),(2, coluna)]
+retornaVizinhos _ _ linha 1 = [(linha-1, 1),(linha+1,1),(linha,2)]
+retornaVizinhos proxima_linha proxima_coluna linha coluna = [(linha+1,coluna),(linha-1, coluna),(linha, coluna+1),(linha, coluna-1)]
 
 
 -- Verifica se posicao pode explodir iterando pelas linhas
@@ -113,12 +166,6 @@ checaPosicaoDeExplosao _ _ 1 _ qtdBolinhas =(qtdBolinhas == 3)
 checaPosicaoDeExplosao _ _ _ 1 qtdBolinhas =(qtdBolinhas == 3)
 checaPosicaoDeExplosao proxima_linha proxima_coluna linha_cont coluna_cont qtdBolinhas = (qtdBolinhas == 4)
 
-
-
---inserirBolasNosVizinhos :: [[(String, Int)]] -> (Int,Int) -> String -> [[(String, Int)]]
---inserirBolasNosVizinhos tabuleiro posicoes jogadorDaVez = tabuleiro ++ [("Caio", 21)]
-
-
 -- Inverte o jogador da vez.
 inverterJogador :: String -> String
 inverterJogador jogadorDaVez
@@ -139,7 +186,9 @@ jogar tabuleiro jogadorDaVez = do
     coluna_lida <- getLine
     let coluna = (read coluna_lida :: Int)
     let tabuleiroComJogada = realizarJogada tabuleiro jogadorDaVez linha coluna
-    jogar tabuleiroComJogada (inverterJogador jogadorDaVez)
+    let coordenadas = [(linha,coluna)]
+    let tabuleiroResolvido = resolverTabuleiro tabuleiroComJogada jogadorDaVez coordenadas
+    jogar tabuleiroResolvido (inverterJogador jogadorDaVez)
 
 -- Funcao principal do programa
 main :: IO ()
