@@ -80,6 +80,20 @@ inserirNoTabuleiro (a:xs) jogadorDaVez linha linha_cont coluna
     | linha_cont == linha = [(inserirNaPosicao a jogadorDaVez coluna 1)] ++ (inserirNoTabuleiro xs jogadorDaVez linha (linha_cont+1) coluna)
     | otherwise = [a] ++ (inserirNoTabuleiro xs jogadorDaVez linha (linha_cont+1) coluna)
 
+--Funcao auxiliar verifica a possibilidade de jogada na posicao
+verificaPossibilidadeDeJogoPosicao :: [(String, Int)]-> Int -> Int -> Int -> String -> Bool
+verificaPossibilidadeDeJogoPosicao [] _ _ _ _ = False
+verificaPossibilidadeDeJogoPosicao (x:xs) linha coluna coluna_cont jogadorDaVez
+    | coluna_cont == coluna = (fst x == jogadorDaVez) || (fst x == "N")
+    | otherwise = verificaPossibilidadeDeJogoPosicao xs linha coluna (coluna_cont+1) jogadorDaVez
+
+--Funcao verifica a possibilidade de jogada
+verificaPossibilidadeDeJogo :: [[(String, Int)]] -> Int -> Int -> Int -> String -> Bool
+verificaPossibilidadeDeJogo [] _ _ _ _ = False
+verificaPossibilidadeDeJogo (x:xs) linha coluna linha_cont jogadorDaVez
+    | linha_cont == linha = verificaPossibilidadeDeJogoPosicao x linha coluna 1 jogadorDaVez
+    | otherwise = verificaPossibilidadeDeJogo xs linha coluna (linha_cont+1) jogadorDaVez
+
 -- Funcao auxiliar de resetarNoTabuleiro que permite resetar os valores na posicao correta.
 resetarNaPosicao :: [(String, Int)] -> Int -> Int -> [(String, Int)]
 resetarNaPosicao [] _ _ = []
@@ -139,7 +153,6 @@ retornaVizinhos _ _ 1 coluna = [(1,coluna-1),(1,coluna+1),(2, coluna)]
 retornaVizinhos _ _ linha 1 = [(linha-1, 1),(linha+1,1),(linha,2)]
 retornaVizinhos proxima_linha proxima_coluna linha coluna = [(linha+1,coluna),(linha-1, coluna),(linha, coluna+1),(linha, coluna-1)]
 
-
 -- Verifica se posicao pode explodir iterando pelas linhas
 podeExplodirLinha :: [[(String, Int)]] -> Int -> Int -> Int -> Bool
 podeExplodirLinha [] _ _ _ = False
@@ -185,6 +198,15 @@ jogar tabuleiro jogadorDaVez = do
     putStrLn ("Em qual coluna voce quer jogar?")
     coluna_lida <- getLine
     let coluna = (read coluna_lida :: Int)
+    let podeJogar = verificaPossibilidadeDeJogo tabuleiro linha coluna 1 jogadorDaVez
+    if not podeJogar
+        then do
+            putStrLn("")
+            putStrLn("")
+            putStrLn("Jogada em posição inválida")
+            jogar tabuleiro jogadorDaVez
+        else do
+            putStrLn("")
     let tabuleiroComJogada = realizarJogada tabuleiro jogadorDaVez linha coluna
     let coordenadas = [(linha,coluna)]
     let tabuleiroResolvido = resolverTabuleiro tabuleiroComJogada jogadorDaVez coordenadas
