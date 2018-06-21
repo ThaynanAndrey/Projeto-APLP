@@ -1,4 +1,5 @@
 import Data.Char
+import Control.Concurrent
 
 --Mostra o menu do programa
 mostrarMenu :: IO ()
@@ -51,7 +52,7 @@ configurarTamanhoTabuleiro = do
     qtd_colunas_char <- getLine
     let qtd_colunas = (read qtd_colunas_char :: Int)
     let meuTabuleiro = criarTabuleiro qtd_linhas qtd_colunas
-    jogar meuTabuleiro "A"
+    jogar meuTabuleiro "A" 1
 
 -- Recebe a entrada do Usario para delinear a dinamica do jogo.
 iniciarJogo :: IO ()
@@ -113,6 +114,27 @@ realizarJogada :: [[(String, Int)]] -> String -> Int -> Int -> [[(String, Int)]]
 realizarJogada tabuleiro jogadorDaVez linha coluna = do
     inserirNoTabuleiro tabuleiro jogadorDaVez linha 1 coluna
 
+--Funcao responsável por limpar a tela do terminal
+limparTela :: IO()
+limparTela = putStr "\ESC[2J"
+
+--Funcao que imprime a resolucao do tabuleiro 
+imprimeResolucaoTabuleiro :: [[(String,Int)]] -> String -> [(Int, Int )]-> IO()
+imprimeResolucaoTabuleiro tabuleiro jogadorDaVez [] = do
+    limparTela
+    imprimirTauleiro tabuleiro
+imprimeResolucaoTabuleiro tabuleiro jogadorDaVez ((a, b):xs) = do
+    if(podeExplodirLinha tabuleiro a b 1) then do
+        let vizinhos = pegaVizinhos tabuleiro a b 1
+        limparTela
+        imprimirTauleiro tabuleiro
+        threadDelay 1000000 --dorme por 1 segundo
+        let tabuleiroInserido = inserirBolasNosVizinhos tabuleiro jogadorDaVez vizinhos
+        let tabuleiroResolvido = resetarNoTabuleiro tabuleiroInserido a 1 b
+        imprimeResolucaoTabuleiro tabuleiroResolvido jogadorDaVez (xs ++ vizinhos)
+    else do
+        imprimeResolucaoTabuleiro tabuleiro jogadorDaVez xs
+
 --Funcao que realiza o chain reaction
 resolverTabuleiro :: [[(String,Int)]] -> String -> [(Int, Int )]-> [[(String, Int)]]
 resolverTabuleiro tabuleiro jogadorDaVez [] = tabuleiro
@@ -120,7 +142,8 @@ resolverTabuleiro tabuleiro jogadorDaVez ((a, b):xs) = do
     if(podeExplodirLinha tabuleiro a b 1) then do
         let vizinhos = pegaVizinhos tabuleiro a b 1
         let tabuleiroInserido = inserirBolasNosVizinhos tabuleiro jogadorDaVez vizinhos
-        resetarNoTabuleiro tabuleiroInserido a 1 b 
+        let tabuleiroResolvido = resetarNoTabuleiro tabuleiroInserido a 1 b
+        resolverTabuleiro tabuleiroResolvido jogadorDaVez (xs ++ vizinhos)
     else do
         resolverTabuleiro tabuleiro jogadorDaVez xs
 
@@ -135,11 +158,13 @@ pegaVizinhos (x:xs) linha coluna linha_cont
     | linha_cont == linha = pegaVizinhosNaPosicao x linha coluna 1 xs
     | otherwise = pegaVizinhos xs linha coluna (linha_cont+1)
 
+
 --Funcao auxiliar pega os vizinhos de uma certa coordenada
 pegaVizinhosNaPosicao :: [(String, Int)]-> Int -> Int -> Int -> [[(String,Int)]] -> [(Int, Int)]
 pegaVizinhosNaPosicao (x:xs) linha coluna coluna_cont proxima_linha
     | coluna_cont == coluna = retornaVizinhos proxima_linha xs linha coluna
-    | otherwise = pegaVizinhosNaPosicao xs linha coluna coluna_cont proxima_linha
+    | otherwise = pegaVizinhosNaPosicao xs linha coluna (coluna_cont+1) proxima_linha
+
 
 --Funcao auxiliar retorna os vizinhos de uma certa coordenada
 retornaVizinhos :: [[(String,Int)]] -> [(String,Int)] -> Int -> Int -> [(Int,Int)]
@@ -169,15 +194,15 @@ podeExplodirColuna ((a,b):xs) coluna coluna_cont proxima_linha linha_cont
 
 --Funcao auxiliar que checa se a posição explode
 checaPosicaoDeExplosao :: [[(String, Int)]] -> [(String,Int)] -> Int -> Int -> Int -> Bool
-checaPosicaoDeExplosao [] [] _ _ qtdBolinhas = (qtdBolinhas == 2)
-checaPosicaoDeExplosao _ _ 1 1 qtdBolinhas =(qtdBolinhas == 2)
-checaPosicaoDeExplosao [] _ _ 1 qtdBolinhas = (qtdBolinhas == 2)
-checaPosicaoDeExplosao _ [] 1 _ qtdBolinhas =(qtdBolinhas == 2)
-checaPosicaoDeExplosao [] _ _ _ qtdBolinhas =(qtdBolinhas == 3)
-checaPosicaoDeExplosao _ [] _ _ qtdBolinhas =(qtdBolinhas == 3)
-checaPosicaoDeExplosao _ _ 1 _ qtdBolinhas =(qtdBolinhas == 3)
-checaPosicaoDeExplosao _ _ _ 1 qtdBolinhas =(qtdBolinhas == 3)
-checaPosicaoDeExplosao proxima_linha proxima_coluna linha_cont coluna_cont qtdBolinhas = (qtdBolinhas == 4)
+checaPosicaoDeExplosao [] [] _ _ qtdBolinhas = (qtdBolinhas >= 2)
+checaPosicaoDeExplosao _ _ 1 1 qtdBolinhas =(qtdBolinhas >= 2)
+checaPosicaoDeExplosao [] _ _ 1 qtdBolinhas = (qtdBolinhas >= 2)
+checaPosicaoDeExplosao _ [] 1 _ qtdBolinhas =(qtdBolinhas >= 2)
+checaPosicaoDeExplosao [] _ _ _ qtdBolinhas =(qtdBolinhas >= 3)
+checaPosicaoDeExplosao _ [] _ _ qtdBolinhas =(qtdBolinhas >= 3)
+checaPosicaoDeExplosao _ _ 1 _ qtdBolinhas =(qtdBolinhas >= 3)
+checaPosicaoDeExplosao _ _ _ 1 qtdBolinhas =(qtdBolinhas >= 3)
+checaPosicaoDeExplosao proxima_linha proxima_coluna linha_cont coluna_cont qtdBolinhas = (qtdBolinhas >= 4)
 
 -- Inverte o jogador da vez.
 inverterJogador :: String -> String
@@ -185,11 +210,27 @@ inverterJogador jogadorDaVez
     | jogadorDaVez == "A" = "B"
     | otherwise = "A"
 
+-- Funcao para checar se o jogador é vencedor
+checaVencedor :: [[(String,Int)]] -> String -> Int -> Bool
+checaVencedor [] jogador contador = True
+checaVencedor (x:xs) jogador contador = do
+    if(checaPosicao x jogador 1) then do
+        checaVencedor xs jogador (contador+1)
+    else 
+        False
+--Funcao auxliar de checaVencedor para checar cada posicao da matriz
+checaPosicao :: [(String, Int)] -> String -> Int -> Bool
+checaPosicao [] jogador contador = True
+checaPosicao ((a,b):xs) jogador contador = do
+    if (a /= jogador && a /="N") then
+        False
+    else do
+        checaPosicao xs jogador (contador+1)
+ 
 -- Funcao responsavel pelo controle de jogo
-jogar :: [[(String, Int)]] -> String -> IO()
-jogar tabuleiro jogadorDaVez = do
-    -- Fazer a verificacao de se algum jogador ja ganhou
-    putStrLn("")
+jogar :: [[(String, Int)]] -> String -> Int -> IO()
+jogar tabuleiro jogadorDaVez contador = do
+    limparTela 
     imprimirTauleiro tabuleiro
     putStrLn("Sua vez jogador " ++ jogadorDaVez )
     putStrLn ("Em qual linha voce quer jogar?")
@@ -204,13 +245,18 @@ jogar tabuleiro jogadorDaVez = do
             putStrLn("")
             putStrLn("")
             putStrLn("Jogada em posição inválida")
-            jogar tabuleiro jogadorDaVez
+            jogar tabuleiro jogadorDaVez contador
         else do
-            putStrLn("")
+            limparTela
     let tabuleiroComJogada = realizarJogada tabuleiro jogadorDaVez linha coluna
     let coordenadas = [(linha,coluna)]
+    limparTela 
+    imprimeResolucaoTabuleiro tabuleiroComJogada jogadorDaVez coordenadas
     let tabuleiroResolvido = resolverTabuleiro tabuleiroComJogada jogadorDaVez coordenadas
-    jogar tabuleiroResolvido (inverterJogador jogadorDaVez)
+    if(contador > 2 && checaVencedor tabuleiroResolvido jogadorDaVez 1) then do
+       putStr("Parabéns, jogador " ++ jogadorDaVez ++ ", Você venceu!")
+    else do
+        jogar tabuleiroResolvido (inverterJogador jogadorDaVez) (contador+1)
 
 -- Funcao principal do programa
 main :: IO ()
