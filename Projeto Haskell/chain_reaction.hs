@@ -1,6 +1,10 @@
 import Data.Char
 import Control.Concurrent
 
+-- Utilizado para as guias do tabuleiro, na qual cada letra
+-- representara a coluna do tabuleiro.
+guiaColuna = "ABCDEFGHIJKLMNOPQRSTUVXYWZ"
+
 --Mostra o menu do programa
 mostrarMenu :: IO ()
 mostrarMenu = do
@@ -15,23 +19,50 @@ mostrarMenu = do
  putStrLn ("Digite o número de sua opção: ")
 
 -- Formata a linha do tabuleiro em espaços a partir da lista passada.
-formatarLinhaTabuleiro :: [String] -> String
-formatarLinhaTabuleiro [] = ""
-formatarLinhaTabuleiro (a:xs) = a ++ " " ++ formatarLinhaTabuleiro xs 
+formatarLinhaTabuleiro :: [String] -> Int -> String
+formatarLinhaTabuleiro [] _ = ""
+formatarLinhaTabuleiro (a:xs) cont = do 
+    if(cont == 0) then do
+        a ++ formatarLinhaTabuleiro xs (cont+1)
+    else do
+        " " ++ a ++ formatarLinhaTabuleiro xs (cont+1)
+
+-- Formata o valor da posicao do tabuleiro, seguindo a ideia:
+--    Se o valor na posicao for N, entao a posicao eh impressa com valor vazio.
+--    Se não, o valor eh impresso com a letra do jogador e a quantidade de bolinhas
+--    naquela posicao.
+formatarValorPosicao :: String -> String -> String
+formatarValorPosicao a b
+    | a == "N" = "  "
+    | otherwise = a ++ b
 
 -- Formata cada linha do jogo para apresentacao ao Usuario.
 obterLinhaFormatada :: [(String, Int)] -> String
 obterLinhaFormatada linha = do
-    let linhaFormatada = [ a ++ (show b) | (a, b) <- linha]  
-    formatarLinhaTabuleiro linhaFormatada
+    let linhaFormatada = [ (formatarValorPosicao a (show b)) | (a, b) <- linha]  
+    formatarLinhaTabuleiro linhaFormatada 0
+
+-- Realiza a insercao de espacamento de acordo com a numeracao da linha,
+-- mantendo-se o alinhamento do tabuleiro.
+inserirEspacamento :: Int -> String
+inserirEspacamento cont | cont < 10 = " | "
+                        | otherwise = "| "
+
+guiasColuna :: [(String, Int)] -> Int -> String
+guiasColuna [] _ = ""
+guiasColuna (a:xs) cont = " " ++ [guiaColuna !! cont] ++ " " ++ (guiasColuna xs (cont + 1))
 
 -- Realiza a impressao do tabuleiro.
-imprimirTauleiro :: [[(String, Int)]] -> IO()
-imprimirTauleiro [] = putStrLn("")
-imprimirTauleiro (a:xs) = do
-    let linhaFormatada = obterLinhaFormatada a
-    print linhaFormatada
-    imprimirTauleiro(xs)
+imprimirTauleiro :: [[(String, Int)]] -> Int -> IO()
+imprimirTauleiro [] _ = putStrLn("")
+imprimirTauleiro (a:xs) cont = do
+    let linhaFormatada = (show cont) ++ (inserirEspacamento cont) ++ obterLinhaFormatada a
+    if(cont == 1) then do
+        print ("  |" ++ guiasColuna a 0)
+        print linhaFormatada
+    else do
+        print linhaFormatada
+    imprimirTauleiro (xs) (cont+1)
 
 -- Cria um tabuleiro novo
 -- Uma lista de listas para representar a matriz.
@@ -122,12 +153,12 @@ limparTela = putStr "\ESC[2J"
 imprimeResolucaoTabuleiro :: [[(String,Int)]] -> String -> [(Int, Int )]-> IO()
 imprimeResolucaoTabuleiro tabuleiro jogadorDaVez [] = do
     limparTela
-    imprimirTauleiro tabuleiro
+    imprimirTauleiro tabuleiro 1
 imprimeResolucaoTabuleiro tabuleiro jogadorDaVez ((a, b):xs) = do
     if(podeExplodirLinha tabuleiro a b 1) then do
         let vizinhos = pegaVizinhos tabuleiro a b 1
         limparTela
-        imprimirTauleiro tabuleiro
+        imprimirTauleiro tabuleiro 1
         threadDelay 1000000 --dorme por 1 segundo
         let tabuleiroInserido = inserirBolasNosVizinhos tabuleiro jogadorDaVez vizinhos
         let tabuleiroResolvido = resetarNoTabuleiro tabuleiroInserido a 1 b
@@ -218,6 +249,7 @@ checaVencedor (x:xs) jogador contador = do
         checaVencedor xs jogador (contador+1)
     else 
         False
+
 --Funcao auxliar de checaVencedor para checar cada posicao da matriz
 checaPosicao :: [(String, Int)] -> String -> Int -> Bool
 checaPosicao [] jogador contador = True
@@ -226,19 +258,27 @@ checaPosicao ((a,b):xs) jogador contador = do
         False
     else do
         checaPosicao xs jogador (contador+1)
- 
+
+-- Obtem a posicao da coluna a partir do valor passado pelo usuario.
+posicaoColuna :: String -> String -> Int -> Int
+posicaoColuna [] _ _ = -1
+posicaoColuna (a:xs) valor cont
+    | [a] == valor = cont
+    | otherwise = posicaoColuna xs valor (cont+1)
+
 -- Funcao responsavel pelo controle de jogo
 jogar :: [[(String, Int)]] -> String -> Int -> IO()
 jogar tabuleiro jogadorDaVez contador = do
     limparTela 
-    imprimirTauleiro tabuleiro
+    imprimirTauleiro tabuleiro 1
     putStrLn("Sua vez jogador " ++ jogadorDaVez )
-    putStrLn ("Em qual linha voce quer jogar?")
+    putStrLn ("Em qual linha voce quer jogar? (Ex: 1)")
     linha_lida <- getLine
     let linha = (read linha_lida :: Int)
-    putStrLn ("Em qual coluna voce quer jogar?")
+    putStrLn ("Em qual coluna voce quer jogar? (Ex: A)")
     coluna_lida <- getLine
-    let coluna = (read coluna_lida :: Int)
+    let coluna = posicaoColuna guiaColuna coluna_lida 1
+    --let coluna = (read coluna_lida :: Int)
     let podeJogar = verificaPossibilidadeDeJogo tabuleiro linha coluna 1 jogadorDaVez
     if not podeJogar
         then do
