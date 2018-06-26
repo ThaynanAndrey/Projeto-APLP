@@ -160,9 +160,12 @@ imprimeResolucaoTabuleiro tabuleiro jogadorDaVez ((a, b):xs) = do
         limparTela
         imprimirTauleiro tabuleiro 1
         threadDelay 1000000 --dorme por 1 segundo
-        let tabuleiroInserido = inserirBolasNosVizinhos tabuleiro jogadorDaVez vizinhos
-        let tabuleiroResolvido = resetarNoTabuleiro tabuleiroInserido a 1 b
-        imprimeResolucaoTabuleiro tabuleiroResolvido jogadorDaVez (xs ++ vizinhos)
+        if (checaVencedor tabuleiro jogadorDaVez 1) then do
+            putStr("Parabéns, jogador " ++ jogadorDaVez ++ ", Você venceu!")
+        else do
+            let tabuleiroInserido = inserirBolasNosVizinhos tabuleiro jogadorDaVez vizinhos
+            let tabuleiroResolvido = resetarNoTabuleiro tabuleiroInserido a 1 b
+            imprimeResolucaoTabuleiro tabuleiroResolvido jogadorDaVez (xs ++ vizinhos)
     else do
         imprimeResolucaoTabuleiro tabuleiro jogadorDaVez xs
 
