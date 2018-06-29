@@ -169,7 +169,7 @@ imprimeResolucaoTabuleiro tabuleiro jogadorDaVez ((a, b):xs) = do
     else do
         imprimeResolucaoTabuleiro tabuleiro jogadorDaVez xs
 
---Funcao que realiza o chain reaction
+--Funcao que resolve o tabuleiro realizando o chain reaction
 resolverTabuleiro :: [[(String,Int)]] -> String -> [(Int, Int )]-> [[(String, Int)]]
 resolverTabuleiro tabuleiro jogadorDaVez [] = tabuleiro
 resolverTabuleiro tabuleiro jogadorDaVez ((a, b):xs) = do
@@ -177,7 +177,10 @@ resolverTabuleiro tabuleiro jogadorDaVez ((a, b):xs) = do
         let vizinhos = pegaVizinhos tabuleiro a b 1
         let tabuleiroInserido = inserirBolasNosVizinhos tabuleiro jogadorDaVez vizinhos
         let tabuleiroResolvido = resetarNoTabuleiro tabuleiroInserido a 1 b
-        resolverTabuleiro tabuleiroResolvido jogadorDaVez (xs ++ vizinhos)
+        if(checaVencedor tabuleiroResolvido jogadorDaVez 1) then do
+            resolverTabuleiro tabuleiroResolvido jogadorDaVez []
+        else do
+            resolverTabuleiro tabuleiroResolvido jogadorDaVez (xs ++ vizinhos)
     else do
         resolverTabuleiro tabuleiro jogadorDaVez xs
 
@@ -192,13 +195,11 @@ pegaVizinhos (x:xs) linha coluna linha_cont
     | linha_cont == linha = pegaVizinhosNaPosicao x linha coluna 1 xs
     | otherwise = pegaVizinhos xs linha coluna (linha_cont+1)
 
-
 --Funcao auxiliar pega os vizinhos de uma certa coordenada
 pegaVizinhosNaPosicao :: [(String, Int)]-> Int -> Int -> Int -> [[(String,Int)]] -> [(Int, Int)]
 pegaVizinhosNaPosicao (x:xs) linha coluna coluna_cont proxima_linha
     | coluna_cont == coluna = retornaVizinhos proxima_linha xs linha coluna
     | otherwise = pegaVizinhosNaPosicao xs linha coluna (coluna_cont+1) proxima_linha
-
 
 --Funcao auxiliar retorna os vizinhos de uma certa coordenada
 retornaVizinhos :: [[(String,Int)]] -> [(String,Int)] -> Int -> Int -> [(Int,Int)]
@@ -281,7 +282,6 @@ jogar tabuleiro jogadorDaVez contador = do
     putStrLn ("Em qual coluna voce quer jogar? (Ex: A)")
     coluna_lida <- getLine
     let coluna = posicaoColuna guiaColuna coluna_lida 1
-    --let coluna = (read coluna_lida :: Int)
     let podeJogar = verificaPossibilidadeDeJogo tabuleiro linha coluna 1 jogadorDaVez
     if not podeJogar
         then do
