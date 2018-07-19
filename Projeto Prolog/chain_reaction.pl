@@ -180,7 +180,8 @@ tem_b:-
 ganhador:-
     findall(N, posicao(N), Ns),
     length(Ns, X),
-    (tem_a, not tem_b) ; (tem_b, not tem_a)
+    % (tem_a, not tem_b) ; (tem_b, not tem_a)
+    true.
 
 % -- Verificar ganhador
 % -- Menu
