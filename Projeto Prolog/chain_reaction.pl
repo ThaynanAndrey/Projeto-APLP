@@ -162,7 +162,6 @@ menu_jogar(Jogador, Turno):-
 % -- Menu Jogar
 % -- Configurar tab - em seguida inicia o jogo
 
-bordas(0,X,Y).
 valid_jog_borda(X,Y):-
     call(bordas(0, A, B)),
     ((X =< A) , (Y =< B)).
@@ -180,7 +179,7 @@ configurar_tab:-
     tam_valido(TamX, TamY) -> 
         retractall(tam(X, Y)),
         assertz(tam(TamX, TamY)),
-        assertz(bordas(0,TamX,TamY))    ,
+        assertz(bordas(0,TamX,TamY)),
         cria_matriz,
         menu_jogar(1, 0)
         ; 
