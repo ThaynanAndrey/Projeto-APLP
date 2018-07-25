@@ -57,7 +57,7 @@ print_tab(X, Y, YY):-
 
   % Fato a ser utilizado por quem desejar imprimir o tabuleiro %
 print_tab:- 
-    % write('\33\[2J'),
+    write('\33\[2J'),
     tam(X, Y),
     print_tab(X, Y, Y).
 
