@@ -145,11 +145,18 @@ realizar_jogada(Jogador):-
 % -- Realizar jogada
 % -- Menu Jogar
 
-menu_jogar(Jogador):-
+menu_jogar(Jogador, Turno):-
+    ((ganhador),(Turno > 2))->
+     JogadorVencedor is Jogador * -1,
+     write('\33\[2J'),
+     print_tab,
+     format('~n Jogador ~w VENCEU !!!~n', [JogadorVencedor]),
+     halt(0);
     print_tab,
     realizar_jogada(Jogador),
     NJogador is Jogador * -1,
-    menu_jogar(NJogador).
+    ProxTurno is Turno + 1,
+    menu_jogar(NJogador, ProxTurno).
 
 % -- Menu Jogar
 % -- Configurar tab - em seguida inicia o jogo
@@ -168,25 +175,22 @@ configurar_tab:-
         retractall(tam(X, Y)),
         assertz(tam(TamX, TamY)),
         cria_matriz,
-        menu_jogar(1)
+        menu_jogar(1, 0)
         ; 
         configurar_tab.
 
 % -- Configurar tab
 % -- Verificar ganhador
 
-tem_a:-
-    call(posicao(X, Y, 1, B)).
+nao_tem_a:-
+    not(call(posicao(X, Y, 1, B))).
 
-tem_b:-
-    call(posicao(X, Y, -1, B)).
+nao_tem_b:-
+    not(call(posicao(X, Y, -1, B))).
 
 ganhador:-
-    findall(N, posicao(N), Ns),
-    length(Ns, X),
-    % (tem_a, not tem_b) ; (tem_b, not tem_a)
-    true.
-
+        ((nao_tem_a) , not(nao_tem_b)) ; (not(nao_tem_a), (nao_tem_b)).
+ 
 % -- Verificar ganhador
 % -- Menu
 
