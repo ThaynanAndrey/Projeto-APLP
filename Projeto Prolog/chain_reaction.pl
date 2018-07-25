@@ -57,7 +57,7 @@ print_tab(X, Y, YY):-
 
   % Fato a ser utilizado por quem desejar imprimir o tabuleiro %
 print_tab:- 
-    write('\33\[2J'),
+    % write('\33\[2J'),
     tam(X, Y),
     print_tab(X, Y, Y).
 
@@ -132,11 +132,15 @@ resolver_tabuleiro(X, Y, Jogador):-
 % -- Realizar jogada
 
 realizar_jogada(Jogador):-
-    format('Vez do jogador ~w. Insira a jogada (Ex 1. 2.): ', [Jogador]),
+    format('~nVez do jogador ~w. Insira a jogada (Ex 1. 2.): ', [Jogador]),
     read(X),
     read(Y),
-    format('~nJogando em ~w x ~w', [X, Y]),
-    atualizar_posicao(X, Y, Jogador).
+    call(posicao(X,Y,Cor, Qntd)),
+    ((Cor == Jogador);(Cor == 0)) ->
+        format('~nJogando em ~w x ~w', [X, Y]),
+        atualizar_posicao(X, Y, Jogador)
+        ;
+        realizar_jogada(Jogador).
 
 % -- Realizar jogada
 % -- Menu Jogar
