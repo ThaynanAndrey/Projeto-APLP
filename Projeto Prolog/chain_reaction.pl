@@ -76,7 +76,7 @@ atualizar_posicao(X, Y, Jogador):-
     QtdNova is Qtd + 1,
     assertz(posicao(X, Y, Jogador, QtdNova)),
     tam(XX, YY),
-    call(explode(X, Y, QtdNova, XX, YY)) -> 
+    (call(explode(X, Y, QtdNova, XX, YY)) , not(ganhador) )-> 
         sleep(0.5),
         print_tab,
         write('~n-- Resolvendo tabuleiro --'),
@@ -132,8 +132,8 @@ resolver_tabuleiro(X, Y, Jogador):-
 % -- Realizar jogada
 
 realizar_jogada(Jogador):-
-    call(jogador(Jogador, ABC)),
-    format('~nVez do jogador ~w. Insira a jogada (Ex 1. 2.): ', [ABC]),
+    call(jogador(Jogador, Jog)),
+    format('~nVez do jogador ~w. Insira a jogada (Ex 1. 2.): ', [Jog]),
     read(X),
     read(Y),
     valid_jog_borda(X,Y),
@@ -152,8 +152,8 @@ menu_jogar(Jogador, Turno):-
      JogadorVencedor is Jogador * -1,
      write('\33\[2J'),
      print_tab,
-     call(jogador(JogadorVencedor, ABC)),
-     format('~n ~w VENCEU !!!~n', [ABC]),
+     call(jogador(JogadorVencedor, Jog)),
+     format('~n ~w VENCEU !!!~n', [Jog]),
      halt(0);
     print_tab,
     realizar_jogada(Jogador),
