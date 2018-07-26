@@ -164,7 +164,7 @@ menu_jogar(Jogador, Turno):-
 
 valid_jog_borda(X,Y):-
     call(bordas(0, A, B)),
-    ((X =< A) , (Y =< B)).
+    ((X =< A) , (Y =< B) , (Y > 0), (X > 0)).
 
 tam_valido(X, Y):-
     X > 2, 
