@@ -132,7 +132,8 @@ resolver_tabuleiro(X, Y, Jogador):-
 % -- Realizar jogada
 
 realizar_jogada(Jogador):-
-    format('~nVez do jogador ~w. Insira a jogada (Ex 1. 2.): ', [Jogador]),
+    call(jogador(Jogador, ABC)),
+    format('~nVez do jogador ~w. Insira a jogada (Ex 1. 2.): ', [ABC]),
     read(X),
     read(Y),
     valid_jog_borda(X,Y),
@@ -151,7 +152,8 @@ menu_jogar(Jogador, Turno):-
      JogadorVencedor is Jogador * -1,
      write('\33\[2J'),
      print_tab,
-     format('~n Jogador ~w VENCEU !!!~n', [JogadorVencedor]),
+     call(jogador(JogadorVencedor, ABC)),
+     format('~n ~w VENCEU !!!~n', [ABC]),
      halt(0);
     print_tab,
     realizar_jogada(Jogador),
@@ -180,6 +182,8 @@ configurar_tab:-
         retractall(tam(X, Y)),
         assertz(tam(TamX, TamY)),
         assertz(bordas(0,TamX,TamY)),
+        assertz(jogador(1,'Jogador A')),
+        assertz(jogador(-1,'Jogador B')),
         cria_matriz,
         menu_jogar(1, 0)
         ; 
